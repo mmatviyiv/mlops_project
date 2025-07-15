@@ -1,0 +1,243 @@
+tests:
+  - id: list_comprehension
+    original: |
+      def get_squared_numbers(numbers):
+          squared_list = []
+          for n in numbers:
+              squared_list.append(n*n)
+          return squared_list
+    refactored: |
+      def get_squared_numbers(numbers):
+          return [n*n for n in numbers]
+
+  - id: unpacking_variables
+    original: |
+      def get_user_info(user):
+          name = user[0]
+          age = user[1]
+          email = user[2]
+          return f"User: {name}, Age: {age}, Email: {email}"
+    refactored: |
+      def get_user_info(user):
+          name, age, email = user
+          return f"User: {name}, Age: {age}, Email: {email}"
+
+  - id: f_string_concatenation
+    original: |
+      def greet_user(name, city):
+          return "Hello, " + name + "! Welcome to " + city + "."
+    refactored: |
+      def greet_user(name, city):
+          return f"Hello, {name}! Welcome to {city}."
+
+  - id: use_enumerate
+    original: |
+      def print_items_with_index(items):
+          i = 0
+          for item in items:
+              print(i, item)
+              i += 1
+    refactored: |
+      def print_items_with_index(items):
+          for i, item in enumerate(items):
+              print(i, item)
+
+  - id: dict_get_with_default
+    original: |
+      def get_config_value(config, key):
+          if key in config:
+              return config[key]
+          else:
+              return "default"
+    refactored: |
+      def get_config_value(config, key):
+          return config.get(key, "default")
+
+  - id: use_with_statement_for_files
+    original: |
+      def read_file_content(path):
+          f = open(path, 'r')
+          content = f.read()
+          f.close()
+          return content
+    refactored: |
+      def read_file_content(path):
+          with open(path, 'r') as f:
+              return f.read()
+
+  - id: simplify_boolean_return
+    original: |
+      def is_positive(number):
+          if number > 0:
+              return True
+          else:
+              return False
+    refactored: |
+      def is_positive(number):
+          return number > 0
+
+  - id: use_in_for_membership
+    original: |
+      def is_admin(user, admin_list):
+          found = False
+          for admin in admin_list:
+              if user == admin:
+                  found = True
+                  break
+          return found
+    refactored: |
+      def is_admin(user, admin_list):
+          return user in admin_list
+
+  - id: dict_comprehension
+    original: |
+      def create_squares_dict(numbers):
+          result = {}
+          for n in numbers:
+              result[n] = n * n
+          return result
+    refactored: |
+      def create_squares_dict(numbers):
+          return {n: n * n for n in numbers}
+
+  - id: join_string_list
+    original: |
+      def join_words(words):
+          result = ""
+          for word in words:
+              result += word + " "
+          return result.strip()
+    refactored: |
+      def join_words(words):
+          return " ".join(words)
+
+  - id: chained_comparison
+    original: |
+      def is_in_range(value, lower, upper):
+          if value >= lower and value < upper:
+              return True
+          return False
+    refactored: |
+      def is_in_range(value, lower, upper):
+          return lower <= value < upper
+
+  - id: use_any_for_conditions
+    original: |
+      def has_negative_number(numbers):
+          for n in numbers:
+              if n < 0:
+                  return True
+          return False
+    refactored: |
+      def has_negative_number(numbers):
+          return any(n < 0 for n in numbers)
+
+  - id: defaultdict_for_counting
+    original: |
+      def count_letters(text):
+          counts = {}
+          for char in text:
+              if char not in counts:
+                  counts[char] = 0
+              counts[char] += 1
+          return counts
+    refactored: |
+      from collections import defaultdict
+
+      def count_letters(text):
+          counts = defaultdict(int)
+          for char in text:
+              counts[char] += 1
+          return counts
+
+  - id: set_comprehension
+    original: |
+      def get_unique_lowercase_letters(text):
+          letters = set()
+          for char in text:
+              if 'a' <= char.lower() <= 'z':
+                  letters.add(char.lower())
+          return letters
+    refactored: |
+      def get_unique_lowercase_letters(text):
+          return {char.lower() for char in text if 'a' <= char.lower() <= 'z'}
+
+  - id: if_expression_ternary
+    original: |
+      def get_status(is_active):
+          if is_active:
+              status = "Active"
+          else:
+              status = "Inactive"
+          return status
+    refactored: |
+      def get_status(is_active):
+          return "Active" if is_active else "Inactive"
+
+  - id: inline_loop
+    original: |
+      def create_user_descriptions(users):
+          descriptions = []
+          for user in users:
+              desc = user['name'] + ' (' + str(user['age']) + ')'
+              descriptions.append(desc)
+          return descriptions
+    refactored: |
+      def create_user_descriptions(users):
+          return [f"{user['name']} ({user['age']})" for user in users]
+
+  - id: simplify_if_none_check
+    original: |
+      def get_name(user):
+          if user is not None:
+              return user.name
+          else:
+              return "Guest"
+    refactored: |
+      def get_name(user):
+          return user.name if user else "Guest"
+
+  - id: merge_dictionaries_3_9
+    original: |
+      def merge_configs(default_config, user_config):
+          merged = default_config.copy()
+          for key, value in user_config.items():
+              merged[key] = value
+          return merged
+    refactored: |
+      def merge_configs(default_config, user_config):
+          return default_config | user_config
+
+  - id: remove_redundant_else
+    original: |
+      def check_value(x):
+          if x > 10:
+              return "High"
+          else:
+              if x > 5:
+                  return "Medium"
+              else:
+                  return "Low"
+    refactored: |
+      def check_value(x):
+          if x > 10:
+              return "High"
+          if x > 5:
+              return "Medium"
+          return "Low"
+
+  - id: use_try_except_for_type_conversion
+    original: |
+      def get_integer_value(value):
+          if isinstance(value, str) and value.isdigit():
+              return int(value)
+          elif isinstance(value, int):
+              return value
+          else:
+              return None
+    refactored: |
+      def get_integer_value(value):
+          try:
+              return int(value)
+          except (ValueError, TypeError):
+              return None
