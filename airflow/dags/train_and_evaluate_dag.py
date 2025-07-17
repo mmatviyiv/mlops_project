@@ -173,7 +173,7 @@ with DAG(
             
             # 1. Create a handle for the file upload
             create_handle_response = hook._do_api_call(
-                ("POST", "api/2.0/dbfs/create"),
+                ("POST", "2.0/dbfs/create"),
                 json={"path": dbfs_path, "overwrite": "true"},
             )
             handle = create_handle_response["handle"]
@@ -187,14 +187,14 @@ with DAG(
                         break
                     encoded_chunk = base64.b64encode(chunk).decode("utf-8")
                     hook._do_api_call(
-                        ("POST", "api/2.0/dbfs/add-block"),
+                        ("POST", "2.0/dbfs/add-block"),
                         json={"handle": handle, "data": encoded_chunk},
                     )
             print(f"Finished writing all blocks for '{file_name}'.")
 
             # 3. Close the handle
             hook._do_api_call(
-                ("POST", "api/2.0/dbfs/close"),
+                ("POST", "2.0/dbfs/close"),
                 json={"handle": handle},
             )
 
@@ -296,7 +296,7 @@ with DAG(
 
             hook = DatabricksHook(databricks_conn_id="azure_databricks")
             hook._do_api_call(
-                ("POST", "api/2.0/mlflow/model-versions/transition-stage"),
+                ("POST", "2.0/mlflow/model-versions/transition-stage"),
                 json={
                     "name": NEW_MODEL_NAME,
                     "version": challenger_version,
