@@ -19,7 +19,7 @@ def get_staging_models() -> list[str]:
     try:
         hook = DatabricksHook(databricks_conn_id="azure_databricks")
         
-        registered_models_resp = hook._do_api_call(("GET", "api/2.0/mlflow/registered-models/search"))
+        registered_models_resp = hook._do_api_call(("GET", "2.0/mlflow/registered-models/search"))
         registered_models = registered_models_resp.get("registered_models", [])
         
         if not registered_models:
@@ -32,7 +32,7 @@ def get_staging_models() -> list[str]:
             
             filter_str = f"name='{model_name}'"
             encoded_filter = quote(filter_str)
-            endpoint = f"api/2.0/mlflow/model-versions/search?filter={encoded_filter}"
+            endpoint = f"2.0/mlflow/model-versions/search?filter={encoded_filter}"
             
             versions_resp = hook._do_api_call(("GET", endpoint))
             versions = versions_resp.get("model_versions", [])
@@ -89,7 +89,7 @@ with DAG(
 
         print(f"Transitioning model '{model_name}' version {model_version} to 'Production'...")
         hook._do_api_call(
-            ("POST", "api/2.0/mlflow/model-versions/transition-stage"),
+            ("POST", "2.0/mlflow/model-versions/transition-stage"),
             json={
                 "name": model_name,
                 "version": model_version,

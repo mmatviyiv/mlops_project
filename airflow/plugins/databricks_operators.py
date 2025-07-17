@@ -19,7 +19,7 @@ class DatabricksRunNotebookOperator(DatabricksSubmitRunOperator):
         hook = DatabricksHook(self.databricks_conn_id)
 
         print(f"Parent run {self.run_id} completed. Fetching its details to find the task run ID...")
-        run_info = hook._do_api_call(("GET", f"api/2.1/jobs/runs/get?run_id={self.run_id}"))
+        run_info = hook._do_api_call(("GET", f"2.1/jobs/runs/get?run_id={self.run_id}"))
 
         run_tasks = run_info.get("tasks", [])
         if not run_tasks:
