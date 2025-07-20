@@ -1,0 +1,88 @@
+airflowVersion: 3.0.3
+defaultAirflowTag: 3.0.3
+
+images:
+  airflow:
+    repository: apache/airflow
+    tag: 3.0.3
+
+executor: LocalExecutor
+
+extraEnv: |
+  - name: AIRFLOW__CORE__PLUGINS_FOLDER
+    value: /opt/airflow/dags/repo/airflow/plugins
+  - name: AIRFLOW__CORE__HOSTNAME_CALLABLE
+    value: airflow.utils.net.get_host_ip_address
+  - name: _PIP_ADDITIONAL_REQUIREMENTS
+    value: apache-airflow[databricks,microsoft.azure]==3.0.3
+
+dags:
+  persistence:
+    enabled: false
+
+  gitSync:
+    enabled: true
+    repo: https://github.com/mmatviyiv/mlops_project.git
+    branch: main
+    subPath: airflow/dags
+
+webserver:
+  enabled: true
+  
+createUserJob:
+  useHelmHooks: false
+
+apiServer:
+  service:
+    type: LoadBalancer
+
+  args: ["bash", "-c", "exec airflow api-server --workers 1"]
+
+  startupProbe:
+    initialDelaySeconds: 180
+    timeoutSeconds: 60
+
+dagProcessor:
+  livenessProbe:
+    initialDelaySeconds: 300
+    timeoutSeconds: 30
+    periodSeconds: 60
+
+  env:
+    - name: AIRFLOW__CORE__PLUGINS_FOLDER
+      value: /opt/airflow/dags/repo/airflow/plugins
+
+statsd:
+  enabled: false
+
+redis:
+  enabled: false
+
+triggerer:
+  enabled: false
+
+scheduler:
+  enabled: true
+
+  resources:
+    requests:
+      cpu: 1
+      memory: 4Gi
+    limits:
+      cpu: 2
+      memory: 8Gi
+  
+  logGroomerSidecar:
+    enabled: false
+
+  startupProbe:
+    initialDelaySeconds: 300
+    timeoutSeconds: 30
+
+  livenessProbe:
+    initialDelaySeconds: 300
+    timeoutSeconds: 30
+    periodSeconds: 60
+
+postgresql:
+  enabled: true

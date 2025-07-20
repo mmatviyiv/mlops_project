@@ -1,0 +1,69 @@
+{
+    "name": "refactor-plugin-demo",
+    "displayName": "Refactor Plugin Demo",
+    "description": "A simple demo plugin for code refactoring ",
+    "version": "0.0.0",
+    "publisher": "demo",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/mmatviyiv/mlops_project.git"
+    },
+    "engines": {
+        "vscode": "^1.80.0"
+    },
+    "main": "./extension.js",
+    "activationEvents": [
+        "onStartupFinished"
+    ],
+    "contributes": {
+        "commands": [
+            {
+                "command": "refactor-plugin.refactorCode",
+                "title": "Refactor Code",
+                "icon": "$(sparkle)"
+            },
+            {
+                "command": "refactor-plugin.applyChanges",
+                "title": "Apply Changes",
+                "icon": "$(check)"
+            },
+            {
+                "command": "refactor-plugin.rejectChanges",
+                "title": "Reject Changes",
+                "icon": "$(close)"
+            }
+        ],
+        "menus": {
+            "editor/title": [
+                {
+                    "when": "editorTextFocus && !refactorPlugin.isRefactoring",
+                    "command": "refactor-plugin.refactorCode",
+                    "group": "navigation"
+                },
+                {
+                    "when": "refactorPlugin.isRefactoring",
+                    "command": "refactor-plugin.applyChanges",
+                    "group": "navigation"
+                },
+                {
+                    "when": "refactorPlugin.isRefactoring",
+                    "command": "refactor-plugin.rejectChanges",
+                    "group": "navigation"
+                }
+            ]
+        }
+    },
+    "scripts": {
+        "vscode:prepublish": "webpack --mode production",
+        "compile": "webpack --mode none"
+    },
+    "dependencies": {
+        "node-fetch": "^2.6.7",
+        "vsce": "^2.15.0"
+    },
+    "devDependencies": {
+        "@types/vscode": "^1.80.0",
+        "webpack": "^5.88.2",
+        "webpack-cli": "^5.1.4"
+    }
+}
