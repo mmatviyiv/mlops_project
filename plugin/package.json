@@ -1,7 +1,7 @@
 {
     "name": "refactor-plugin-demo",
     "displayName": "Refactor Plugin Demo",
-    "description": "A simple demo plugin for code refactoring",
+    "description": "A simple demo plugin for code refactoring ",
     "version": "0.0.0",
     "publisher": "demo",
     "repository": {
