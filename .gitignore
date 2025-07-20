@@ -9,9 +9,7 @@ __pycache__/
 
 # Distribution / packaging
 .Python
-build/
 develop-eggs/
-dist/
 downloads/
 eggs/
 .eggs/
@@ -150,3 +148,9 @@ cython_debug/
 *.log*
 
 logs/
+
+/app/models/*
+!/app/models/.keep
+
+/plugin/node_modules/*
+/plugin/dist/
