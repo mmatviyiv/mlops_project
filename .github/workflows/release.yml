@@ -4,11 +4,32 @@ on:
   push:
     branches:
       - main
+    paths:
+      - 'app/**'
+      - 'plugin/**'
+      - '.github/workflows/release.yml'
 
 jobs:
-  build_extension:
+  changes:
     runs-on: ubuntu-latest
-    if: "contains(github.event.head_commit.message, '[build extension]')"
+    outputs:
+      app: ${{ steps.filter.outputs.app }}
+      plugin: ${{ steps.filter.outputs.plugin }}
+    steps:
+      - uses: actions/checkout@v3
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            app:
+              - 'app/**'
+            plugin:
+              - 'plugin/**'
+
+  build_extension:
+    needs: changes
+    if: ${{ needs.changes.outputs.plugin == 'true' }}
+    runs-on: ubuntu-latest
     permissions:
       contents: write # Needed to create releases and tags
     steps:
@@ -62,8 +83,9 @@ jobs:
           asset_content_type: application/vsix
 
   build_app:
+    needs: changes
+    if: ${{ needs.changes.outputs.app == 'true' }}
     runs-on: macos-latest
-    if: "contains(github.event.head_commit.message, '[build app]')"
     permissions:
       contents: write
     steps:
