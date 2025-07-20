@@ -86,10 +86,23 @@ jobs:
     needs: changes
     if: ${{ needs.changes.outputs.app == 'true' }}
     runs-on: macos-latest
+    permissions:
+      contents: write
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
 
+      - name: Calculate new version
+        id: versioning_app
+        run: |
+          LATEST_TAG=$(git describe --tags --match "app-v*" --abbrev=0 2>/dev/null || echo "app-v0.0.0")
+          VERSION_NUMBER=${LATEST_TAG#app-v}
+          NEW_VERSION=$(echo $VERSION_NUMBER | awk -F. -v OFS=. '{$NF++;print}')
+          echo "NEW_VERSION=$NEW_VERSION" >> $GITHUB_ENV
+          echo "new_version_tag=app-v$NEW_VERSION" >> $GITHUB_OUTPUT
+          
       - name: Setup Python
         uses: actions/setup-python@v4
         with:
@@ -100,39 +113,6 @@ jobs:
           pip install -r app/requirements.txt
           chmod +x build/build_app.sh
           ./build/build_app.sh
-
-      - name: Upload App Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: refactor-app-build
-          path: dist/RefactorApp.app
-          retention-days: 1
-
-  release_app:
-    needs: build_app
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
-
-      - name: Download App Artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: refactor-app-build
-          path: build/dist/RefactorApp.app
-
-      - name: Calculate new version
-        id: versioning_app
-        run: |
-          LATEST_TAG=$(git describe --tags --match "app-v*" --abbrev=0 2>/dev/null || echo "app-v0.0.0")
-          VERSION_NUMBER=${LATEST_TAG#app-v}
-          NEW_VERSION=$(echo $VERSION_NUMBER | awk -F. -v OFS=. '{$NF++;print}')
-          echo "NEW_VERSION=$NEW_VERSION" >> $GITHUB_ENV
-          echo "new_version_tag=app-v$NEW_VERSION" >> $GITHUB_OUTPUT
       
       - name: Create Release
         id: create_release_app
@@ -148,8 +128,8 @@ jobs:
       - name: Zip the .app
         id: zip_app
         run: |
-          ARCHIVE_PATH="build/dist/RefactorApp-macOS-v${{ env.NEW_VERSION }}.zip"
-          ditto -c -k --sequesterRsrc --keepParent build/dist/RefactorApp.app "$ARCHIVE_PATH"
+          ARCHIVE_PATH="dist/RefactorApp-macOS-v${{ env.NEW_VERSION }}.zip"
+          ditto -c -k --sequesterRsrc --keepParent dist/RefactorApp.app "$ARCHIVE_PATH"
           echo "asset_path=$ARCHIVE_PATH" >> $GITHUB_OUTPUT
 
       - name: Upload App to Release
