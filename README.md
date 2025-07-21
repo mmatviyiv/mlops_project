@@ -1,38 +1,44 @@
-# Code Refactoring Assistant - A Proof-of-Concept
+# Lightweight Code Refactoring Assistant
 
-This repository outlines a proof-of-concept for a lightweight, open-source system for code refactoring. It demonstrates how a robust MLOps pipeline for model training can be combined with a simple desktop application and a VS Code plugin for local inference. The goal is to showcase a complete conceptual workflow, from training a specialized model to using it for a development task.
+This repository contains the core components for a lightweight, open-source system for code refactoring. It implements a full end-to-end MLOps pipeline for fine-tuning a specialized language model and a local application stack for developers to use the model for inference. The system is built around the `deepseek-coder-1.3b-instruct` model, fine-tuned specifically for Python code enhancement tasks.
 
-## Key Components & Directory Structure
+## System Architecture
 
-The repository is organized into four main functional areas:
+The project is divided into two primary, interconnected flows: a cloud-based MLOps pipeline for model production and a local deployment solution for developer use.
 
-- **`app/`**: Contains a demo desktop application (built with PyQt5) and an integrated FastAPI server. Its purpose is to provide a simple GUI for managing the local inference server and downloading models for demonstration.
+### 1. MLOps Pipeline: Model Training & Deployment
 
-- **`airflow/`**: Holds the Apache Airflow configuration, including DAGs for orchestrating the conceptual MLOps training and evaluation pipelines.
+This flow automates the creation, evaluation, and versioning of new models.
 
-- **`mlflow/`**: Contains the core Jupyter notebooks for model fine-tuning (`train.ipynb`) and evaluation (`evaluate.ipynb`). These are designed to be executed as jobs by Databricks to showcase the training part of the concept.
+1.  **Orchestration**: An **Apache Airflow DAG** (`train_and_evaluate_dag.py`) is manually triggered to begin the pipeline. It fetches the raw `CodeSearchNet` dataset from Azure Blob Storage and prepares it for training.
+2.  **Two-Stage Training**: The DAG executes jobs on **Databricks**, running two sequential notebooks:
+    *   `pretrain.ipynb`: Performs "Continued Pre-training" on raw Python code to enhance the model's foundational understanding.
+    *   `train.ipynb`: Performs "Instruction Fine-Tuning" using function-docstring pairs to teach the model the refactoring task.
+3.  **Evaluation**: An `evaluate.ipynb` notebook benchmarks the newly trained "challenger" model against the current "champion" from production using the **BLEURT** metric on a held-out test set (`tests.yaml`).
+4.  **Versioning & Deployment**: The models, parameters, and metrics are tracked in **MLflow**. If the challenger scores higher than the champion, it is automatically promoted to the `Staging` stage in the MLflow Model Registry, awaiting manual approval for `Production`.
 
-- **`plugin/`**: Contains the source code for a demo Visual Studio Code extension. This plugin serves as a basic client that communicates with the local FastAPI server to showcase how refactoring suggestions could be provided directly within an editor.
+### 2. Local Inference: Desktop Application & VS Code Extension
 
-## System Dataflow
+This flow enables developers to use the production-ready models on their local machines securely and efficiently.
 
-The following dataflow illustrates the conceptual design of the system, which is divided into two distinct flows.
+1.  **Desktop Application**: The user launches a standalone desktop application (`app/`) to manage models. It connects to the MLflow Model Registry to download the latest `Production` version of the model.
+2.  **Local API Server**: The application starts a local **FastAPI** server (`app/api/`) in the background. This server loads the downloaded model and exposes a `/refactor` endpoint.
+3.  **VS Code Extension**: A companion **VS Code extension** (`plugin/`) communicates with the local API. When a developer selects a block of code and requests a refactoring, the extension sends the code to the local server and displays the returned suggestion directly in the editor.
 
-### Flow 1: Model Training and Registration (MLOps Pipeline Concept)
+## Repository Structure
 
-This flow is centered around the MLOps automation tools and demonstrates how to create and validate new model versions.
+The key components within this `repo/` directory are organized as follows:
 
-1.  An **Airflow DAG** is manually triggered, initiating the pipeline.
-2.  The DAG executes jobs on **Databricks**, running the code from the Jupyter Notebooks in the `mlflow/` directory.
-3.  The `train.ipynb` notebook fine-tunes a language model and logs the resulting artifacts to the **MLflow Model Registry**.
-4.  Next, `evaluate.ipynb` runs benchmarks on the new model and attaches the evaluation metrics as tags to that version in the registry.
+-   **`app/`**: The local deployment solution, containing the desktop GUI (PyQt5) for model management and the FastAPI serving layer.
+-   **`airflow/`**: Contains Airflow configurations and the primary DAG (`train_and_evaluate_dag.py`) for orchestrating the MLOps pipeline.
+-   **`mlflow/`**: Contains the core Databricks notebooks for the two-stage model training (`pretrain.ipynb`, `train.ipynb`) and evaluation (`evaluate.ipynb`).
+-   **`plugin/`**: Source code for the Visual Studio Code extension that acts as a client to the local inference server.
 
-### Flow 2: Demo of Local Inference Workflow
+## Key Technologies
 
-This flow demonstrates how a developer could leverage the trained models for code refactoring on their local machine.
-
-1.  The user first launches the **Demo Desktop Application** (`app/main.py`) to manage models. It connects to the MLflow Model Registry, allowing a user to download a model and start the local API server.
-2.  The `ApiServerManager` utility launches a **FastAPI server** process (`app/api/`), which loads the selected model and exposes a `/refactor` endpoint on `localhost`.
-3.  The **Demo VS Code Extension** (from `plugin/`) communicates with this local API. When a user requests a refactoring, the plugin sends the code to the `/refactor` endpoint.
-4.  The FastAPI server processes the code using the loaded model and returns the refactored version.
-5.  The VS Code extension receives the response and displays the AI-generated refactoring suggestion directly to the user in the editor, completing the proof-of-concept workflow. 
+-   **Model**: `deepseek-coder-1.3b-instruct`
+-   **Training Techniques**: Parameter-Efficient Fine-Tuning (PEFT), Low-Rank Adaptation (LoRA)
+-   **Dataset**: `CodeSearchNet` (Python subset)
+-   **MLOps & Infrastructure**: Airflow, Databricks, MLflow, Azure Blob Storage
+-   **Local Application**: Python, FastAPI, PyQt5
+-   **Client**: Visual Studio Code Extension 
